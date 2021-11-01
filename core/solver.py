@@ -1,23 +1,29 @@
-from .defs import defs
+from .funcs import funcs
 from .data import data
 
 
 def solve(target):
-	if target in data:
-		return data[target]
-	if target not in defs:
+	if target not in data:
 		raise Exception("target not found")
-	targetDef = defs[target]
-	funcName = list(targetDef.keys())[0]
-	func = targetDef[funcName]
-	if funcName == 'add':
-		l = func['left']
-		r = func['right']
-		if type(l) == str and l[0] == '$':
-			l = solve(l[1:])
-		if type(r) == str and r[0] == '$':
-			r = solve(r[1:])
-		return l + r
-	else:
-		raise Exception("unknown func")
+	value = data[target]
+	if type(value) is not dict:
+		return value
+	
+	funcName = list(value.keys())[0]
+
+	if funcName not in funcs:
+		raise Exception("function '" + funcName + "' not found")
+
+
+	func = funcs[funcName]
+	funcArgs = value[funcName]
+
+	args = []
+	for _, arg in funcArgs.items():
+		val = arg
+		if type(arg) == str and arg[0] == '$':
+			val = solve(arg[1:])
+		args.append(val)
+
+	return func['logic'](*args)
 	
