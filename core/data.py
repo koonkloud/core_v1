@@ -1,10 +1,6 @@
-data = {
-	"foo": 2,
-	"bar": {
-		"add": {
-			"left": "$foo",
-			"right": 4
-		}
-	}
-}
-
+data = [
+    {
+        "y": 4,
+    },
+    {"y": {"add": {"left": "$x", "right": -1}}},
+]

@@ -1,6 +1,5 @@
 from core import solve
 
-target = "bar"
+target = "y"
 res = solve(target)
 print(target + ": " + str(res))
-

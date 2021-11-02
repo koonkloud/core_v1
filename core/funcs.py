@@ -1,10 +1,13 @@
 funcs = {
 	"add": {
 		"logic": lambda l, r: l + r,
-		"params": {
-			"left": int,
-			"right": int
-		},
-		"returns": int
+		"reverse": "sub"
+	},
+	"sub": {
+		"logic": lambda l, r: l - r,
+		"reverse": "add"
+	},
+	"concat": {
+		"logic": lambda l, r: l + " " + r,
 	}
 }
