@@ -60,11 +60,14 @@ def isolate(definition, target):
 def getDefinitions(target):
     defs = []
     for definition in data:
-        # direct def
+        # If the target is directly defined.
         if target in definition:
             defs.append(definition[target])
+        # If the definition is an expression,
         elif type(list(definition.values())[0]) is dict:
+            # Try to isolate the target from the defintion
             isolated = isolate(definition, target)
+            # Add the isolated definition to the definitions list
             if isolated:
                 defs.append(isolated)
     return defs
@@ -95,6 +98,7 @@ def solveVar(eq):
 
 
 def solve(target):
+    # Get all the definitions for the target.
     defs = getDefinitions(target)
     if not defs:
         raise Exception("target not found")
