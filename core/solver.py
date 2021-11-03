@@ -39,6 +39,16 @@ def isolate(definition, target):
     funcName, funcArgs = parseEq(definedFunc)
     func = funcs[funcName]
 
+    if "params" in definedFunc:
+
+        return {
+            func["reverse"]: {
+                "target": target,
+                "ref": "$" + definedName,
+                "str": funcArgs["format"],
+            }
+        }
+
     left = "$" + definedName
     right = definedFunc
     t = target
@@ -61,6 +71,7 @@ def getDefinitions(target):
 
 
 def solveVar(eq):
+    params = eq["params"] if "params" in eq else []
     op, args = parseEq(eq)
     parsedArgs = []
     for _, arg in args.items():
@@ -70,6 +81,14 @@ def solveVar(eq):
         if type(arg) == str and arg[0] == "$":
             val = solve(arg[1:])
         parsedArgs.append(val)
+    for param in params:
+        # print("p", param)
+        try:
+            parsedArgs.append(solve(param))
+
+        except Exception as e:
+            # raise e
+            pass
 
     func = funcs[op]
     return func["logic"](*parsedArgs)
@@ -89,4 +108,6 @@ def solve(target):
         return
 
     targetDef = defs[0]
+    if type(targetDef) is not dict:
+        return targetDef
     return solveVar(targetDef)

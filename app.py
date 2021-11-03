@@ -1,5 +1,5 @@
 from core import solve
 
-target = "x"
+target = "name"
 res = solve(target)
 print(target + ": " + str(res))

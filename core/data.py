@@ -1,13 +1,16 @@
 data = [
+    {"given_name": "john"},
+    {"surname": "woods"},
     {
-        "y": 4,
+        "name": {
+            "formatString": {"format": "\\$given_name $surname"},
+            "params": ["given_name", "surname"],
+        }
     },
-    {"y": {"add": {"left": {"mul": {"left": "$x", "right": 2}}, "right": 1}}},
 ]
 
-# y = 4
-# y = Add(Mul(x, 2), 1)
+# name = "$given_name $surname"
 
-# Min(y, 1) = Mul(x, 2)
-# Div(Min(y, 1), 2) = x
-# x = (y - 1) / 2
+# name = "john woods"
+
+# given_name = pickString($name, "given_name")
