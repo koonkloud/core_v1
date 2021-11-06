@@ -2,17 +2,19 @@
 
 The core of the KoonKloud
 
-This is a very bare bones math solver.
+## Definitions
 
-We have a set of definitions:
+Definitions are stored as a list of Definition types.
+
+A definition type looks like:
 
 ```json
-[
-    {
-        "y": 4
-    },
-    { "y": { "add": { "left": "$x", "right": -1 } } }
-]
+{
+    "foo": {
+        "type": "string",
+        "value": "bar"
+    }
+}
 ```
 
 This is the same as writing
