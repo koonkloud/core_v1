@@ -1,10 +1,13 @@
-def Base(type: str, **kwargs):
-    return {"type": type, **kwargs}
+class Call:
+    def __init__(self, fnName: str, args: object) -> None:
+        self.fnName = fnName
+        self.args = args
 
 
-def String(value: str):
-    return Base("string", value=value)
+class Definition:
+    def __init__(self, name: str, value: any) -> None:
+        self.name = name
+        self.value = value
 
-
-def Call(functionName: str, **kwargs):
-    return Base("call", fn=functionName, args=kwargs)
+    def __repr__(self) -> str:
+        return f"<{self.name} = {self.value}>"

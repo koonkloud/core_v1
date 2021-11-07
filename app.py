@@ -1,5 +1,8 @@
 from core.definitions import definitions
+from core.funcs import funcs
+from core import Solver
+from pprint import pprint
 
-# target = "name"
-# res = solve(target)
-# print(target + ": " + str(res))
+solver = Solver(definitions, funcs)
+defs = solver.getDefinitions("x")
+pprint(defs)

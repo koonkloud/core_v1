@@ -1,117 +1,74 @@
-from .funcs import funcs
-from .data import data
+from typing import List
+from .types import Definition
+
+from .util import equalsSymbol, isCall, parseDefinition
+from .def_util import Call, Symbol
 
 
-def parseEq(eq):
-    op = list(eq.keys())[0]
-    return op, eq[op]
+class Solver:
+    definitions: List[Definition] = []
+    baseFunctions: List[object] = []
 
+    def __init__(
+        self, definitions: List[object] = [], baseFunctions: List[object] = []
+    ) -> None:
+        self.loadDefinitions(definitions)
+        self.loadBaseFunctions(baseFunctions)
 
-def containsTarget(eq, target):
-    if type(eq) is not dict:
-        if eq == "$" + target:
-            return True
-        return
-    op, eq = parseEq(eq)
-    for argName, arg in eq.items():
-        if containsTarget(arg, target):
-            return True
-    return
+    def loadDefinitions(self, definitions: List[object]) -> None:
+        self.definitions = [parseDefinition(definition) for definition in definitions]
 
+    def loadBaseFunctions(self, functions: List[object]) -> None:
+        self.baseFunctions = functions
 
-def isolateVar(left, right, target):
+    def getDefinitions(self, name: str) -> List[Definition]:
+        return self.getDirectDefinitions(name) + self.getIndirectDefinitions(name)
 
-    funcName, args = parseEq(right)
-    func = funcs[funcName]
-    for argName, arg in args.items():
-        if containsTarget(arg, target):
-            left = {func["reverse"]: {"left": left, "right": args["right"]}}
-            right = arg
+    def getDirectDefinitions(self, name: str) -> List[Definition]:
+        return [
+            definition for definition in self.definitions if definition.name == name
+        ]
 
-    if "$" + target == right:
-        return left
+    def getIndirectDefinitions(self, name: str) -> List[Definition]:
+        indirectDefinitions = []
+        for definition in self.definitions:
+            isolatedDefinition = self.getIndirectDefinition(definition, name)
+            if isolatedDefinition:
+                indirectDefinitions.append(isolatedDefinition)
+        return indirectDefinitions
 
-    return isolateVar(left, right, target)
+    def getIndirectDefinition(self, definition: Definition, name: str):
+        defined = definition.name
+        value = definition.value
 
+        left = Symbol(defined)
+        right = value
 
-def isolate(definition, target):
-    definedName, definedFunc = parseEq(definition)
-    funcName, funcArgs = parseEq(definedFunc)
-    func = funcs[funcName]
+        return self.isolateSymbol(left, right, name)
 
-    if "params" in definedFunc:
+    def isolateSymbol(self, left: object, right: object, target: str) -> object:
+        funcName = right["fn"]
+        funcArgs = right["args"]
+        func = self.getFunction(funcName)
+        for argName, arg in funcArgs.items():
+            if self.containsSymbol(expr=arg, symbol=target):
+                left = Call(func["reverse"], left=left, right=funcArgs["right"])
+                right = arg
+        if equalsSymbol(right, target):
+            return left
+        return self.isolateSymbol(left, right, target)
 
-        return {
-            func["reverse"]: {
-                "target": target,
-                "ref": "$" + definedName,
-                "str": funcArgs["format"],
-            }
-        }
+    def containsSymbol(self, expr: object, symbol: str) -> bool:
+        return equalsSymbol(expr, symbol) or (
+            isCall(expr)
+            and any([self.containsSymbol(arg, symbol) for arg in expr["args"].values()])
+        )
 
-    left = "$" + definedName
-    right = definedFunc
-    t = target
+    def getFunction(self, functionName: str) -> object:
+        functions = self.getFunctions()
+        if functionName not in functions:
+            raise Exception("func not found w name " + functionName)
+        return functions[functionName]
 
-    return isolateVar(left, right, t)
-
-
-# determine if the target can be solved for
-def getDefinitions(target):
-    defs = []
-    for definition in data:
-        # If the target is directly defined.
-        if target in definition:
-            defs.append(definition[target])
-        # If the definition is an expression,
-        elif type(list(definition.values())[0]) is dict:
-            # Try to isolate the target from the defintion
-            isolated = isolate(definition, target)
-            # Add the isolated definition to the definitions list
-            if isolated:
-                defs.append(isolated)
-    return defs
-
-
-def solveVar(eq):
-    params = eq["params"] if "params" in eq else []
-    op, args = parseEq(eq)
-    parsedArgs = []
-    for _, arg in args.items():
-        val = arg
-        if type(arg) is dict:
-            val = solveVar(arg)
-        if type(arg) == str and arg[0] == "$":
-            val = solve(arg[1:])
-        parsedArgs.append(val)
-    for param in params:
-        # print("p", param)
-        try:
-            parsedArgs.append(solve(param))
-
-        except Exception as e:
-            # raise e
-            pass
-
-    func = funcs[op]
-    return func["logic"](*parsedArgs)
-
-
-def solve(target):
-    # Get all the definitions for the target.
-    defs = getDefinitions(target)
-    if not defs:
-        raise Exception("target not found")
-
-    if len(defs) > 1:
-        for d in defs:
-            if type(d) is not dict:
-                return d
-        print(defs)
-        print("multiple definition formulas")
-        return
-
-    targetDef = defs[0]
-    if type(targetDef) is not dict:
-        return targetDef
-    return solveVar(targetDef)
+    def getFunctions(self) -> List[object]:
+        return self.baseFunctions
